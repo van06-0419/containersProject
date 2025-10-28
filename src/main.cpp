@@ -45,7 +45,7 @@ int main() {
     list.push_back(30);
     list.print();
 
-    cout << "Тест односвязного списка" << endl;
+    cout << endl << "Тест односвязного списка" << endl;
     SinglyListContainer<int> slist;
     for (int i = 0; i < 10; ++i) slist.push_back(i);
     slist.print();
