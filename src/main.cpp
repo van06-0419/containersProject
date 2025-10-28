@@ -1,6 +1,7 @@
 #include <iostream>
 #include "SeqContainer.h"
 #include "ListContainer.h"
+#include "SinglyListContainer.h"
 using namespace std;
 
 int main() {
