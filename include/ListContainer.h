@@ -26,6 +26,24 @@ public:
 		}
 	}
 
+ListContainer(ListContainer&& other) noexcept
+        : head(other.head), tail(other.tail), m_size(other.m_size) {
+        other.head = other.tail = nullptr;
+        other.m_size = 0;
+    }
+
+    ListContainer& operator=(ListContainer&& other) noexcept {
+        if (this != &other) {
+            this->~ListContainer();
+            head = other.head;
+            tail = other.tail;
+            m_size = other.m_size;
+            other.head = other.tail = nullptr;
+            other.m_size = 0;
+        }
+        return *this;
+    }
+
 	void push_back(const int& value) {
 		Node* newNode = new Node(value);
 		if (head == nullptr) head = tail = newNode;
