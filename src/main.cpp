@@ -6,7 +6,7 @@ using namespace std;
 
 int main() {
     cout << "Тест последовательного контейнера" << endl;
-    SeqContainer<int> seq;
+    SeqContainer seq;
     for (int i = 0; i < 10; ++i) seq.push_back(i);
     seq.print();
     cout << "Размер: " << seq.size() << endl;
@@ -26,7 +26,7 @@ int main() {
     seq.print();
 
     cout << endl << "Тест спискового контейнера" << endl;
-    ListContainer<int> list;
+    ListContainer list;
     for (int i = 0; i < 10; ++i) list.push_back(i);
     list.print();
     cout << "Размер: " << list.size() << endl;
@@ -46,7 +46,7 @@ int main() {
     list.print();
 
     cout << endl << "Тест односвязного списка" << endl;
-    SinglyListContainer<int> slist;
+    SinglyListContainer slist;
     for (int i = 0; i < 10; ++i) slist.push_back(i);
     slist.print();
     cout << "Размер: " << slist.size() << endl;
