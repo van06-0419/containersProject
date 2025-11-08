@@ -66,7 +66,7 @@ public:
 	}
 
 	// удалить элемент в указанной позиции
-	void earse(size_t pos) {
+	void erase(size_t pos) {
 		if (pos > m_size)
 			throw std::out_of_range("pos is outside of current list size");
 
