@@ -29,13 +29,14 @@ public:
 	// добавить в указанное место.
 	void insert(size_t pos, int value) {
 		if (pos > m_size)
-			throw std::out_of_range("pos is outside current list size"); // Позиция выходит за границы списка
+			throw std::out_of_range("pos is outside current list size"); 
+			// Позиция вне списка
 
 		Node* newNode = new Node(value);
 
 		if (pos == 0) {
 			newNode->next = head; // новый узел указывает на старый головной узел
-			head = newNode; // обновляем head — теперь новый узел становится первым
+			head = newNode; // теперь новый узел становится первым
 		}
 		else {
 			Node* current = head;
@@ -90,13 +91,13 @@ public:
 	size_t size() { return m_size; }
 
 	void print() const {
-		Node* current = head;  // 从头开始遍历
-		while (current) {      // 遍历直到链表末尾
-			std::cout << current->data;  // 输出当前节点数据
-			if (current->next) std::cout << ", ";  // 如果不是最后一个节点，输出分隔符
-			current = current->next;     // 移动到下一个节点
+		Node* current = head;
+		while (current) {
+			std::cout << current->data;
+			if (current->next) std::cout << ", ";
+			current = current->next;
 		}
-		std::cout << std::endl;  // 输出换行
+		std::cout << std::endl;
 	}
 
 	class Iterator {
