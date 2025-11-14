@@ -7,17 +7,14 @@ private:
 	struct Node {
 		int data;
 		Node* next;
-		Node(int val) : data(val), next(nullptr) {}
+		explicit Node(int val) : data(val), next(nullptr) {}
 	};
-	Node* head;
-	size_t m_size;
+
+	Node* head = nullptr;
+	size_t m_size = 0;
 
 public:
-	SinglyListContainer() {
-		head = nullptr;
-		m_size = 0;
-	}
-
+	SinglyListContainer() = default;
 	~SinglyListContainer() {
 		while (head) {
 			Node* temp = head;
@@ -26,84 +23,136 @@ public:
 		}
 	}
 
-	// добавить в указанное место.
+	SinglyListContainer(const SinglyListContainer&) = delete;
+	SinglyListContainer& operator=(const SinglyListContainer&) = delete;
+
+	SinglyListContainer(SinglyListContainer&& other) noexcept
+		: head(other.head), m_size(other.m_size) {
+		other.head = nullptr;
+		other.m_size = 0;
+	}
+
+	SinglyListContainer& operator=(SinglyListContainer&& other) noexcept {
+		if (this == &other)
+			return *this;
+
+		while (head) {
+			Node* temp = head;
+			head = head->next;
+			delete temp;
+		}
+		head = other.head;
+		m_size = other.m_size;
+		other.head = nullptr;
+		other.m_size = 0;
+		return *this;
+	}
+
 	void insert(size_t pos, int value) {
 		if (pos > m_size)
-			throw std::out_of_range("pos is outside current list size"); 
-			// Позиция вне списка
-
-		Node* newNode = new Node(value);
+			throw std::out_of_range("position out of range");
 
 		if (pos == 0) {
-			newNode->next = head; // новый узел указывает на старый головной узел
-			head = newNode; // теперь новый узел становится первым
+			Node* node = new Node(value);
+			node->next = head;
+			head = node;
+			++m_size;
+			return;
 		}
-		else {
-			Node* current = head;
-			for (size_t i = 0; i < pos - 1; i++) {
-				current = current->next;
-			}
-			newNode->next = current->next;
-			current->next = newNode;
-		}
+
+		Node* current = head;
+		for (size_t i = 0; i < pos - 1; ++i)
+			current = current->next;
+		Node* node = new Node(value);
+		node->next = current->next;
+		current->next = node;
 		++m_size;
 	}
 
-	// добавить в конец
 	void push_back(int value) {
-		Node* newNode = new Node(value);
+		Node* node = new Node(value);
 
-		if (head == nullptr) head = newNode; 
-		// Если список пуст, новый узел становится головным узлом
-
-		else {
-			Node* current = head;
-			while (current->next != nullptr) {
-				current = current->next;
-			}
-			current->next = newNode;
+		if (head == nullptr) {
+			head = node;
+			++m_size;
+			return;
 		}
+
+		Node* current = head;
+		while (current->next)
+			current = current->next;
+		current->next = node;
 		++m_size;
 	}
 
-	// удалить элемент в указанной позиции
 	void erase(size_t pos) {
-		if (pos > m_size)
-			throw std::out_of_range("pos is outside of current list size");
+		if (pos >= m_size)
+			throw std::out_of_range("position out of range");
 
 		if (pos == 0) {
 			Node* temp = head;
 			head = head->next;
 			delete temp;
+			--m_size;
+			return;
 		}
-		else {
-			Node* current = head;
-			for (size_t i = 0; i < pos - 1; i++) {
-				current = current->next;
-			}
-			Node* temp = current->next;
-			current->next = temp->next;
-			delete temp;
-		}
+
+		Node* current = head;
+		for (size_t i = 0; i < pos - 1; ++i)
+			current = current->next;
+		Node* target = current->next;
+		current->next = target->next;
+		delete target;
 		--m_size;
 	}
 
-	size_t size() { return m_size; }
+	int& get(size_t index) {
+    	if (index >= m_size)
+        	throw std::out_of_range("Index out of range");
+
+    	Node* cur = head;
+    	for (size_t i = 0; i < index; i++)
+        	cur = cur->next;
+
+    	return cur->data;
+	}
+
+	const int& get(size_t index) const {
+    	if (index >= m_size)
+        	throw std::out_of_range("Index out of range");
+
+    	Node* cur = head;
+    	for (size_t i = 0; i < index; i++)
+        	cur = cur->next;
+
+    	return cur->data;
+	}
+
+	int& operator[](size_t index) {
+    	return get(index);
+	}
+
+	const int& operator[](size_t index) const {
+		return get(index);
+	}
+
+
+	size_t size() const noexcept { return m_size; }
 
 	void print() const {
-		Node* current = head;
-		while (current) {
-			std::cout << current->data;
-			if (current->next) std::cout << ", ";
-			current = current->next;
+		Node* p = head;
+		while (p) {
+			std::cout << p->data;
+			if (p->next) std::cout << ", ";
+			p = p->next;
 		}
-		std::cout << std::endl;
+		std::cout << '\n';
 	}
 
 	class Iterator {
 		Node* node;
 	public:
-		Iterator(Node* n) : node(n) {}
+		explicit Iterator(Node* n) : node(n) {}
 		int& operator*() const { return node->data; }
 		Iterator& operator++() { node = node->next; return *this; }
 		bool operator!=(const Iterator& other) const { return node != other.node; }
@@ -112,4 +161,3 @@ public:
 	Iterator begin() const { return Iterator(head); }
 	Iterator end() const { return Iterator(nullptr); }
 };
-
