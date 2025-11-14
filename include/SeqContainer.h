@@ -75,7 +75,6 @@ public:
 
 		for (size_t i = pos; i < m_size - 1; i++)
 			data[i] = std::move(data[i + 1]);
-
 		--m_size;
 	}
 
