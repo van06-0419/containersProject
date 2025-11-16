@@ -38,7 +38,7 @@ private:
 public:
     ListContainer() = default;
 
-    ~ListContainer() { clear_all(); }
+    ~ListContainer() { clearAll(); }
 
     ListContainer(const ListContainer&) = delete;
     ListContainer& operator=(const ListContainer&) = delete;
