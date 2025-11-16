@@ -1,198 +1,229 @@
 #pragma once
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
+template<typename T>
 class ListContainer {
 private:
-	struct Node {
-		int data;
-		Node* prev;
-		Node* next;
-		Node(const int& val) : data(val), prev(nullptr), next(nullptr) {}
-	};
+    struct Node {
+        T data;
+        Node* prev;
+        Node* next;
+        explicit Node(const T& val) : data(val), prev(nullptr), next(nullptr) {}
+        explicit Node(T&& val) : data(std::move(val)), prev(nullptr), next(nullptr) {}
+    };
 
-	Node* head;
-	Node* tail;
-	size_t m_size;
+    Node* head = nullptr;
+    Node* tail = nullptr;
+    size_t m_size = 0;
+
+    // 清空函数
+    void clearAll() noexcept {
+        Node* current = head;
+        while (current) {
+            Node* tmp = current->next;
+            delete current;
+            current = tmp;
+        }
+        head = tail = nullptr;
+        m_size = 0;
+    }
+
+    void clearAfterMove() noexcept {
+        head = tail = nullptr;
+        m_size = 0;
+    }
 
 public:
-	ListContainer() : head(nullptr), tail(nullptr), m_size(0) {}
+    ListContainer() = default;
 
-	~ListContainer() {
-		Node* current = head;
-		while (current) {
-			Node* temp = current->next;
-			delete current;
-			current = temp;
-		}
-	}
+    ~ListContainer() { clear_all(); }
 
-	ListContainer(ListContainer&& other) noexcept
-		: head(other.head), tail(other.tail), m_size(other.m_size) {
-		other.head = other.tail = nullptr;
-		other.m_size = 0;
-	}
+    ListContainer(const ListContainer&) = delete;
+    ListContainer& operator=(const ListContainer&) = delete;
 
-	ListContainer& operator=(ListContainer&& other) noexcept {
-		if (this == &other)
-			return *this;
+    // 移动构造
+    ListContainer(ListContainer&& other) noexcept
+        : head(std::move(other.head)), tail(std::move(other.tail)), m_size(std::move(other.m_size))
+    {
+        other.clearAfterMove();
+    }
 
-		this->~ListContainer();
-		head = other.head;
-		tail = other.tail;
-		m_size = other.m_size;
-		other.head = other.tail = nullptr;
-		other.m_size = 0;
-		return *this;
-	}
+    // 移动赋值
+    ListContainer& operator=(ListContainer&& other) noexcept {
+        if (this == &other) return *this;
 
-	void push_back(const int& value) {
-		Node* newNode = new Node(value);
+        clearAll();
+        head = std::move(other.head);
+        tail = std::move(other.tail);
+        m_size = std::move(other.m_size);
 
-		if (!head) {
-			head = tail = newNode;
-			++m_size;
-			return;
-		}
+        other.clearAfterMove();
+        return *this;
+    }
 
-		tail->next = newNode;
-		newNode->prev = tail;
-		tail = newNode;
-		++m_size;
-	}
+    // push_back
+    void push_back(const T& value) {
+        Node* newNode = new Node(value);
+        if (!head) {
+            head = tail = newNode;
+            ++m_size;
+            return;
+        }
+        tail->next = newNode;
+        newNode->prev = tail;
+        tail = newNode;
+        ++m_size;
+    }
 
-	void insert(size_t pos, const int& value) {
-		if (pos > m_size)
-			throw std::out_of_range("pos is outside of current list size");
+    void push_back(T&& value) {
+        Node* newNode = new Node(std::move(value));
+        if (!head) {
+            head = tail = newNode;
+            ++m_size;
+            return;
+        }
+        tail->next = newNode;
+        newNode->prev = tail;
+        tail = newNode;
+        ++m_size;
+    }
 
-		if (pos == m_size) {
-			push_back(value);
-			return;
-		}
+    // insert
+    void insert(size_t pos, const T& value) {
+        if (pos > m_size) throw std::out_of_range("pos is outside of current list size");
 
-		if (pos == 0) {
-			Node* newNode = new Node(value);
-			newNode->next = head;
-			if (head)
-				head->prev = newNode;
-			else
-				tail = newNode;
-			head = newNode;
-			++m_size;
-			return;
-		}
+        if (pos == m_size) { push_back(value); return; }
+        if (pos == 0) {
+            Node* newNode = new Node(value);
+            newNode->next = head;
+            if (head) head->prev = newNode;
+            else tail = newNode;
+            head = newNode;
+            ++m_size;
+            return;
+        }
 
-		Node* current = head;
-		for (size_t i = 0; i < pos; ++i)
-			current = current->next;
-		Node* newNode = new Node(value);
-		newNode->next = current;
-		newNode->prev = current->prev;
-		current->prev->next = newNode;
-		current->prev = newNode;
-		++m_size;
-	}
+        Node* current = head;
+        for (size_t i = 0; i < pos; ++i) current = current->next;
+        Node* newNode = new Node(value);
+        newNode->next = current;
+        newNode->prev = current->prev;
+        current->prev->next = newNode;
+        current->prev = newNode;
+        ++m_size;
+    }
 
-	void erase(size_t pos) {
-		if (pos >= m_size)
-			throw std::out_of_range("pos is outside of current list size");
+    void insert(size_t pos, T&& value) {
+        if (pos > m_size) throw std::out_of_range("pos is outside of current list size");
 
-		if (pos == 0) {
-			Node* temp = head;
-			head = head->next;
-			if (head)
-				head->prev = nullptr;
-			else
-				tail = nullptr;
-			delete temp;
-			--m_size;
-			return;
-		}
+        if (pos == m_size) { push_back(std::move(value)); return; }
+        if (pos == 0) {
+            Node* newNode = new Node(std::move(value));
+            newNode->next = head;
+            if (head) head->prev = newNode;
+            else tail = newNode;
+            head = newNode;
+            ++m_size;
+            return;
+        }
 
-		if (pos == m_size - 1) {
-			Node* temp = tail;
-			tail = tail->prev;
-			tail->next = nullptr;
-			delete temp;
-			--m_size;
-			return;
-		}
+        Node* current = head;
+        for (size_t i = 0; i < pos; ++i) current = current->next;
+        Node* newNode = new Node(std::move(value));
+        newNode->next = current;
+        newNode->prev = current->prev;
+        current->prev->next = newNode;
+        current->prev = newNode;
+        ++m_size;
+    }
 
-		Node* current = head;
-		for (size_t i = 0; i < pos; ++i)
-			current = current->next;
-		current->prev->next = current->next;
-		current->next->prev = current->prev;
-		delete current;
-		--m_size;
-	}
+    // erase
+    void erase(size_t pos) {
+        if (pos >= m_size) throw std::out_of_range("pos is outside of current list size");
 
-	int& get(size_t index) {
-    	if (index >= m_size)
-        	throw std::out_of_range("Index out of range");
+        if (pos == 0) {
+            Node* temp = head;
+            head = head->next;
+            if (head) head->prev = nullptr;
+            else tail = nullptr;
+            delete temp;
+            --m_size;
+            return;
+        }
 
-    	Node* cur;
-    	if (index < m_size / 2) {
-        	cur = head;
-        	for (size_t i = 0; i < index; ++i)
-            	cur = cur->next;
-	        return cur->data;
-    	}
+        if (pos == m_size - 1) {
+            Node* temp = tail;
+            tail = tail->prev;
+            tail->next = nullptr;
+            delete temp;
+            --m_size;
+            return;
+        }
 
-    	cur = tail;
-    	for (size_t i = m_size - 1; i > index; --i)
-    	    cur = cur->prev;
-    	return cur->data;      
-	}
+        Node* current = head;
+        for (size_t i = 0; i < pos; ++i) current = current->next;
+        current->prev->next = current->next;
+        current->next->prev = current->prev;
+        delete current;
+        --m_size;
+    }
 
-	const int& get(size_t index) const {
-    	if (index >= m_size)
-        	throw std::out_of_range("Index out of range");
+    // 访问元素
+    T& get(size_t index) {
+        if (index >= m_size) throw std::out_of_range("Index out of range");
 
-    	Node* cur;
-    	if (index < m_size / 2) {
-        	cur = head;
-        	for (size_t i = 0; i < index; ++i)
-            	cur = cur->next;
-        	return cur->data;
-    	}
+        Node* cur;
+        if (index < m_size / 2) {
+            cur = head;
+            for (size_t i = 0; i < index; ++i) cur = cur->next;
+        } else {
+            cur = tail;
+            for (size_t i = m_size - 1; i > index; --i) cur = cur->prev;
+        }
+        return cur->data;
+    }
 
-    	cur = tail;
-    	for (size_t i = m_size - 1; i > index; --i)
-        	cur = cur->prev;
-    	return cur->data;
-	}
+    const T& get(size_t index) const {
+        if (index >= m_size) throw std::out_of_range("Index out of range");
 
-	int& operator[](size_t index) {
-    	return get(index);
-	}
+        Node* cur;
+        if (index < m_size / 2) {
+            cur = head;
+            for (size_t i = 0; i < index; ++i) cur = cur->next;
+        } else {
+            cur = tail;
+            for (size_t i = m_size - 1; i > index; --i) cur = cur->prev;
+        }
+        return cur->data;
+    }
 
-	const int& operator[](size_t index) const {
-    	return get(index);
-	}
+    T& operator[](size_t index) { return get(index); }
+    const T& operator[](size_t index) const { return get(index); }
 
-	size_t size() const { return m_size; }
+    size_t size() const noexcept { return m_size; }
 
-	void print() const {
-		Node* current = head;
-		while (current) {
-			std::cout << current->data;
-			if (current->next)
-				std::cout << ",";
-			current = current->next;
-		}
-		std::cout << '\n';
-	}
+    void print() const {
+        Node* current = head;
+        while (current) {
+            std::cout << current->data;
+            if (current->next) std::cout << ",";
+            current = current->next;
+        }
+        std::cout << '\n';
+    }
 
-	class Iterator {
-		Node* node;
-	public:
-		Iterator(Node* n) : node(n) {}
-		int& operator*() const { return node->data; }
-		Iterator& operator++() { node = node->next; return *this; }
-		bool operator!=(const Iterator& other) const { return node != other.node; }
-	};
+    // 迭代器
+    class Iterator {
+        Node* node;
+    public:
+        explicit Iterator(Node* n) : node(n) {}
+        T& operator*() const { return node->data; }
+        Iterator& operator++() { node = node->next; return *this; }
+        bool operator!=(const Iterator& other) const { return node != other.node; }
+    };
 
-	Iterator begin() const { return Iterator(head); }
-	Iterator end() const { return Iterator(nullptr); }
+    Iterator begin() const { return Iterator(head); }
+    Iterator end() const { return Iterator(nullptr); }
 };
